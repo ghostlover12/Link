@@ -3,20 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আমার সাধারণ পেজ</title>
+    <title>Secure Cloud Link</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- গ্লোবাল স্টাইল --- */
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 0; line-height: 1.8; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; min-height: 100vh; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* হেডার */
+        .header-section { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #007bff; padding-bottom: 15px; background: #f8f9fa; border-radius: 8px; padding-top: 15px; }
+        .header-title { font-size: 24px; font-weight: 700; color: #2c3e50; margin: 0; }
+        .header-sub { font-size: 14px; color: #7f8c8d; }
+
+        /* কার্ড গ্রিড */
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { border: 1px solid #e1e4e8; border-radius: 10px; overflow: hidden; background: #fff; text-align: center; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,123,255,0.2); border-color: #007bff; }
+        .card-img { width: 100%; height: 110px; object-fit: cover; background: #dfe6e9; }
+        .card-body { padding: 12px; }
+        .card-title { font-weight: 600; font-size: 15px; margin-bottom: 10px; display: block; color: #34495e; }
+        .start-btn { background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 13px; width: 100%; font-weight: 500; }
+
+        /* --- প্রসেস ভিউ --- */
+        #process-view { display: none; }
+        .progress-wrapper { background: #e9ecef; height: 8px; border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #007bff, #00c6ff); width: 0%; transition: width 0.3s; }
+
+        /* --- ফাইনাল ভিউ --- */
+        #final-view { display: none; animation: fadeIn 0.5s; }
+        .tech-article { background: #fff; border: 1px solid #e1e4e8; padding: 20px; margin-top: 30px; border-radius: 8px; text-align: justify; }
+        .tech-title { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #007bff; display: inline-block; }
+        .tech-content { font-size: 15px; color: #555; line-height: 1.8; }
+
+        /* Verify Human Box */
+        .captcha-box {
+            background: #f9f9f9; border: 1px solid #d3d3d3; border-radius: 4px;
+            padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;
+            margin: 20px auto; width: 240px; user-select: none; cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .captcha-box:active { background: #e9ecef; }
+        .captcha-checkbox { width: 24px; height: 24px; border: 2px solid #c1c1c1; border-radius: 2px; background: #fff; position: relative; }
+        .captcha-checkbox.checked { border-color: #4caf50; background: #4caf50; }
+        .captcha-checkbox.checked::after { content: '✔'; color: white; font-size: 18px; position: absolute; top: -2px; left: 3px; }
+        .captcha-text { font-size: 14px; color: #555; font-weight: 500; }
+        .captcha-logo { width: 28px; opacity: 0.6; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* টাইমার ও মেসেজ */
+        .timer-badge { display: inline-block; background: #fff3cd; color: #856404; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; margin-bottom: 15px; border: 1px solid #ffeeba; }
+        .scroll-msg { display: none; background: #d4edda; color: #155724; padding: 12px; text-align: center; font-weight: bold; border: 1px solid #c3e6cb; border-radius: 6px; margin-top: 20px; animation: bounce 1.5s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* টেক্সট এরিয়া */
+        .step-info { background: #e3f2fd; border-left: 5px solid #007bff; padding: 20px; margin-bottom: 25px; text-align: justify; font-size: 15px; color: #444; border-radius: 5px; }
+        .step-heading { display: block; font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #0d47a1; }
+        .step-para { margin-bottom: 10px; }
+
+        /* ফেইক বাটন */
+        .fake-btn-area { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; }
+        .fake-btn {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; border-radius: 8px; font-weight: 600; font-size: 16px;
+            text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none;
+            position: relative; overflow: hidden;
+        }
+        .fake-btn.style-1 { background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; border-bottom: 4px solid #1e7e34; }
+        .fake-btn.style-2 { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border-bottom: 4px solid #004085; }
+        .fake-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .fake-btn::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shine 3s infinite; }
+        @keyframes shine { 100% { left: 100%; } }
+
+        /* আসল বাটন (মাঝারি) */
+        .next-btn, .final-btn, #get-link-btn {
+            display: none; width: 60%; min-width: 220px; margin: 20px auto;
+            padding: 14px; background: linear-gradient(45deg, #28a745, #218838);
+            color: white; border: none; border-radius: 50px; font-size: 16px;
+            cursor: pointer; text-align: center; text-decoration: none; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4); transition: 0.3s;
+        }
+        .next-btn:hover, .final-btn:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(40, 167, 69, 0.5); }
+
+        /* অ্যাড লেবেল ও বক্স */
+        .ad-label { text-align: center; font-size: 14px; color: #d63031; font-weight: bold; margin-bottom: 5px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.8; } }
+        .ad-box { background: #fdfdfd; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; color: #999; font-size: 12px; padding: 5px; overflow: hidden; }
+    </style>
 </head>
 <body>
 
-    <h1>স্বাগতম!</h1>
-    <p>এটি একটি সাধারণ HTML প্যারাগ্রাফ। এখানে আপনি আপনার লেখা যুক্ত করতে পারেন।</p>
+    <div class="container">
 
-    <ul>
-        <li>লিস্ট আইটেম ১</li>
-        <li>লিস্ট আইটেম ২</li>
-        <li>লিস্ট আইটেম ৩</li>
-    </ul>
+        <div id="home-view">
+            <div class="header-section">
+                <h1 class="header-title">গ্রুপ সিলেক্ট করুন</h1>
+                <span class="header-sub">যে গ্ৰুপের লিংক চান সেখানে ক্লিক করুন 🔗</span>
+            </div>
 
-    <button>ক্লিক করুন</button>
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : 'f07b0369d33ed6d0158f37ab93444715',
+                        'format' : 'iframe',
+                        'height' : 90,
+                        'width' : 728,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/f07b0369d33ed6d0158f37ab93444715/invoke.js"></script>
+            </div>
+
+            <div class="category-grid">
+                <div class="card" onclick="startProcess('https://t.me/subahan01')">
+                    <img src="https://ibb.co.com/1JrdB3Yc" class="card-img" alt="Viral">
+                    <div class="card-body"><span class="card-title">ভাইরাল ভিডিও লিংক🥵</span><button class="start-btn">Get Link</button></div>
+                </div>
+                <div class="card" onclick="startProcess('https://t.me/+3YVGABxgdwM3ZmNl')">
+                    <img src="https://ibb.co.com/GQnSB15M" class="card-img" alt="Movie">
+                    <div class="card-body"><span class="card-title">Premium Group🔞</span><button class="start-btn">Get Link</button></div>
+                </div>
+                <div class="card" onclick="startProcess('https://t.me/subahan01')">
+                    <img src="https://ibb.co.com/KchHHsF8" class="card-img" alt="Gaming">
+                    <div class="card-body"><span class="card-title">বাংলা দেশি ভিডিও 🍒</span><button class="start-btn">Get Link</button></div>
+                </div>
+                <div class="card" onclick="startProcess('https://t.me/+3YVGABxgdwM3ZmNl')">
+                    <img src="https://ibb.co.com/xqnF6nZ9" class="card-img" alt="Job">
+                    <div class="card-body"><span class="card-title">Mixed Videos 🔞</span><button class="start-btn">Get Link</button></div>
+                </div>
+            </div>
+
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : 'cad8ffdb587b9f57e700f76edecd7110',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/cad8ffdb587b9f57e700f76edecd7110/invoke.js"></script>
+            </div>
+        </div>
+
+        <div id="process-view">
+            <div class="progress-wrapper"><div class="progress-fill" id="progress-bar"></div></div>
+
+            <div class="step-info">
+                <span class="step-heading" id="step-title">লোডিং...</span>
+                <div id="step-desc">অপেক্ষা করুন...</div>
+            </div>
+            
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '3d4bd00e1432159a9e2cc0160f88e26b',
+                        'format' : 'iframe',
+                        'height' : 50,
+                        'width' : 320,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/3d4bd00e1432159a9e2cc0160f88e26b/invoke.js"></script>
+            </div>
+
+            <div class="captcha-box" onclick="manualVerify()">
+                <div class="captcha-left">
+                    <div class="captcha-checkbox" id="user-checkbox"></div>
+                    <div class="spinner" id="user-spinner"></div>
+                    <span class="captcha-text">I am not a robot</span>
+                </div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Recaptcha_Logo.svg" class="captcha-logo" alt="logo">
+            </div>
+
+            <div style="text-align:center;">
+                <span class="timer-badge">⏱️ অপেক্ষা করুন: <span id="timer-display">30</span> সেকেন্ড</span>
+            </div>
+
+            <div id="scroll-msg" class="scroll-msg">⬇ SCROLL DOWN & CLICK CONTINUE ⬇</div>
+
+            <div style="margin: 20px 0;">
+                <script async="async" data-cfasync="false" src="https://pl28387879.effectivegatecpm.com/5f1cc4e297998ba9136d8c9c43288c44/invoke.js"></script>
+                <div id="container-5f1cc4e297998ba9136d8c9c43288c44"></div>
+            </div>
+
+            <div class="fake-btn-area">
+                <a href="❤️❤️❤️ Direct_Link ❤️❤️❤️" target="_blank" class="fake-btn style-1">
+                    <span id="fake-btn-1">📥 Fast Server Download</span> <span>OPEN</span>
+                </a>
+                <a href="❤️❤️❤️ Direct_Link ❤️❤️❤️" target="_blank" class="fake-btn style-2">
+                    <span id="fake-btn-2">▶ Play Video Online</span> <span>WATCH</span>
+                </a>
+            </div>
+
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : 'cad8ffdb587b9f57e700f76edecd7110',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/cad8ffdb587b9f57e700f76edecd7110/invoke.js"></script>
+            </div>
+
+            <button id="next-btn" class="next-btn" onclick="goNext()">Verify & Continue >></button>
+            
+            <button id="get-link-btn" class="next-btn" onclick="goToFinalPage()" style="background: linear-gradient(45deg, #007bff, #0056b3);">GET LINK</button>
+        </div>
+
+        <div id="final-view">
+            <div class="header-section">
+                <h1 class="header-title">ফাইল ডাউনলোড</h1>
+                <span class="header-sub">আপনার লিংকটি সফলভাবে তৈরি হয়েছে</span>
+            </div>
+
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : 'f07b0369d33ed6d0158f37ab93444715',
+                        'format' : 'iframe',
+                        'height' : 90,
+                        'width' : 728,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/f07b0369d33ed6d0158f37ab93444715/invoke.js"></script>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <p style="font-weight: bold; color: green; margin-bottom: 10px;">Click below to Join</p>
+                <a id="final-join-btn" class="final-btn" href="#" target="_blank" style="display: block;">JOIN GROUP NOW 🚀</a>
+            </div>
+
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : 'cad8ffdb587b9f57e700f76edecd7110',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/cad8ffdb587b9f57e700f76edecd7110/invoke.js"></script>
+            </div>
+
+            <div class="tech-article">
+                <span class="tech-title">প্রযুক্তির নতুন দিগন্ত: ২০২৫ সালের সাইবার নিরাপত্তা</span>
+                <div class="tech-content">
+                    <p>বর্তমান যুগে প্রযুক্তি আমাদের জীবনের অবিচ্ছেদ্য অংশ হয়ে দাঁড়িয়েছে। স্মার্টফোন থেকে শুরু করে ক্লাউড কম্পিউটিং—সবকিছুই এখন ইন্টারনেটের সাথে যুক্ত। তবে প্রযুক্তির এই অগ্রগতির সাথে সাথে সাইবার নিরাপত্তার ঝুঁকিও বেড়েছে বহুগুণ।</p>
+                    <p>হ্যাকাররা প্রতিনিয়ত নতুন নতুন উপায়ে ব্যবহারকারীদের তথ্য চুরি করার চেষ্টা করছে। বিশেষ করে ফিশিং অ্যাটাক এবং ম্যালওয়্যার ছড়ানোর মাধ্যমে ব্যক্তিগত ডাটা হাতিয়ে নেওয়া হচ্ছে। তাই ইন্টারনেট ব্যবহার করার সময় আমাদের সতর্ক থাকা জরুরি।</p>
+                    <p><strong>নিরাপদ থাকার উপায়:</strong> সর্বদা শক্তিশালী পাসওয়ার্ড ব্যবহার করুন এবং টু-ফ্যাক্টর অথেন্টিকেশন চালু রাখুন। অপরিচিত লিংকে ক্লিক করা থেকে বিরত থাকুন। আমাদের এই ওয়েবসাইটটি আপনার ব্রাউজিং অভিজ্ঞতা নিরাপদ রাখতে সর্বদা এনক্রিপ্টেড কানেকশন ব্যবহার করে।</p>
+                    <p>ভবিষ্যতে কৃত্রিম বুদ্ধিমত্তা বা AI সাইবার নিরাপত্তায় বড় ভূমিকা রাখবে। এটি স্বয়ংক্রিয়ভাবে হুমকি শনাক্ত করতে এবং প্রতিরোধ করতে সক্ষম হবে। প্রযুক্তির সঠিক ব্যবহারই আমাদের জীবনকে আরও সহজ ও সুন্দর করে তুলবে।</p>
+                </div>
+            </div>
+            
+            <div class="ad-label">লিংক পেতে এখানে ক্লিক করুন 👇</div>
+            <div class="ad-box">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '3d4bd00e1432159a9e2cc0160f88e26b',
+                        'format' : 'iframe',
+                        'height' : 50,
+                        'width' : 320,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/3d4bd00e1432159a9e2cc0160f88e26b/invoke.js"></script>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const stepTimes = { 1: 30, 2: 25, 3: 20, 4: 15 };
+        const totalSteps = 4;
+
+        const stepContent = [
+            {
+                title: "অনুগ্রহ করে অপেক্ষা করুন (১/৪)",
+                desc: `<p class="step-para">আপনার অনুরোধটি প্রসেস করা হচ্ছে। সার্ভারের সাথে সংযোগ স্থাপন করতে কিছুটা সময় প্রয়োজন। দয়া করে পেজটি কাটবেন না বা রিফ্রেশ করবেন না।</p>
+                       <p class="step-para">লিংকটি তৈরি হতে কিছুক্ষণ সময় লাগতে পারে। নিচের <strong>'I am not a robot'</strong> বক্সে ক্লিক করুন এবং টাইমার শেষ হওয়া পর্যন্ত ধৈর্য ধরুন। ধন্যবাদ।</p>`,
+                btn1: "📥 Fast Server Download", btn2: "▶ Play Video Online"
+            },
+            {
+                title: "আপনার লিংক তৈরি হচ্ছে (২/৪)",
+                desc: `<p class="step-para">আমরা আপনার জন্য একটি নিরাপদ লিংক প্রস্তুত করছি। অতিরিক্ত ট্রাফিকের কারণে মাঝে মাঝে কয়েক সেকেন্ড দেরি হতে পারে।</p>
+                       <p class="step-para">পরবর্তী ধাপে যাওয়ার আগে অনুগ্রহ করে ভেরিফিকেশন সম্পন্ন করুন। টাইমার শেষ হলে নিচে কন্টিনিউ বাটন দেখতে পাবেন।</p>`,
+                btn1: "⚡ High Speed Access", btn2: "🛡️ Secure VPN Connection"
+            },
+            {
+                title: "ফাইনাল ভেরিফিকেশন চলছে (৩/৪)",
+                desc: `<p class="step-para">আমরা শেষ পর্যায়ের যাচাইকরণ করছি। আপনার ডিভাইসের নিরাপত্তার জন্য ফাইলটি স্ক্যান করা হচ্ছে। দয়া করে অপেক্ষা করুন।</p>
+                       <p class="step-para">নিচের টাইমারটি শেষ হলে আপনি আপনার কাঙ্খিত লিংকে যেতে পারবেন। আমাদের সাথে থাকার জন্য ধন্যবাদ।</p>`,
+                btn1: "💎 Premium Download", btn2: "📂 Open File Manager"
+            },
+            {
+                title: "লিংক প্রস্তুত! (৪/৪)",
+                desc: `<p class="step-para">আপনার অপেক্ষা শেষ! লিংকটি সফলভাবে তৈরি হয়েছে।</p>
+                       <p class="step-para">নিচে থাকা <strong>'Verify Human'</strong> সম্পন্ন করুন এবং টাইমার শেষ হওয়া পর্যন্ত অপেক্ষা করুন। এরপর <strong>'GET LINK'</strong> বাটনে ক্লিক করলে ডাউনলোড পেজে নিয়ে যাওয়া হবে।</p>`,
+                btn1: "🚀 Start Download Now", btn2: "🎁 Claim Your Bonus"
+            }
+        ];
+
+        let currentStep = 1;
+        let targetLink = "";
+        let timerInt;
+        let isTimerDone = false;
+        let isUserVerified = false;
+
+        window.onpopstate = function(event) {
+            if (event.state) {
+                if (event.state.view === 'final') goToFinalPage();
+                else loadStep(event.state.step);
+            } else {
+                showHome();
+            }
+        };
+
+        function startProcess(url) {
+            targetLink = url;
+            history.pushState({step: 1, view: 'process'}, null, "");
+            loadStep(1);
+        }
+
+        function goNext() {
+            if (currentStep < totalSteps) {
+                let next = currentStep + 1;
+                history.pushState({step: next, view: 'process'}, null, "");
+                loadStep(next);
+            }
+        }
+
+        function goToFinalPage() {
+            document.getElementById('process-view').style.display = 'none';
+            document.getElementById('final-view').style.display = 'block';
+            window.scrollTo(0, 0);
+            document.getElementById('final-join-btn').href = targetLink;
+            history.pushState({view: 'final'}, null, "");
+        }
+
+        function manualVerify() {
+            if (isUserVerified) return;
+            const check = document.getElementById('user-checkbox');
+            const spin = document.getElementById('user-spinner');
+            check.style.display = 'none';
+            spin.style.display = 'block';
+            setTimeout(() => {
+                spin.style.display = 'none';
+                check.style.display = 'block';
+                check.classList.add('checked');
+                isUserVerified = true;
+                checkAllConditions(); 
+            }, 1500);
+        }
+
+        function startTimer() {
+            let time = stepTimes[currentStep]; 
+            document.getElementById('timer-display').innerText = time;
+            clearInterval(timerInt);
+            timerInt = setInterval(() => {
+                time--;
+                document.getElementById('timer-display').innerText = time;
+                if (time <= 0) {
+                    clearInterval(timerInt);
+                    isTimerDone = true;
+                    checkAllConditions(); 
+                }
+            }, 1000);
+        }
+
+        function checkAllConditions() {
+            if (isTimerDone && isUserVerified) {
+                showReadyState();
+            }
+        }
+
+        function showReadyState() {
+            document.getElementById('timer-display').parentElement.style.display = 'none'; 
+            document.getElementById('scroll-msg').style.display = 'block'; 
+            setTimeout(() => {
+                if (currentStep < totalSteps) {
+                    document.getElementById('next-btn').style.display = 'block';
+                } else {
+                    document.getElementById('get-link-btn').style.display = 'block';
+                }
+            }, 300);
+        }
+
+        function loadStep(step) {
+            currentStep = step;
+            isTimerDone = false;
+            isUserVerified = false;
+
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('process-view').style.display = 'block';
+            document.getElementById('final-view').style.display = 'none';
+            window.scrollTo(0, 0);
+
+            document.getElementById('user-checkbox').classList.remove('checked');
+            document.getElementById('user-checkbox').style.display = 'block';
+            document.getElementById('user-spinner').style.display = 'none';
+            
+            document.getElementById('timer-display').parentElement.style.display = 'inline-block';
+            document.getElementById('scroll-msg').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('get-link-btn').style.display = 'none';
+
+            let data = stepContent[step - 1];
+            document.getElementById('step-title').innerText = data.title;
+            document.getElementById('step-desc').innerHTML = data.desc;
+            document.getElementById('fake-btn-1').innerText = data.btn1;
+            document.getElementById('fake-btn-2').innerText = data.btn2;
+            document.getElementById('progress-bar').style.width = ((step / totalSteps) * 100) + "%";
+
+            startTimer();
+        }
+
+        function showHome() {
+            document.getElementById('process-view').style.display = 'none';
+            document.getElementById('final-view').style.display = 'none';
+            document.getElementById('home-view').style.display = 'block';
+        }
+    </script>
+    
+    <script src="https://pl28387868.effectivegatecpm.com/32/01/22/320122a339b64cdb19e53d65e5a2bf65.js"></script>
+    <script src="https://pl28387934.effectivegatecpm.com/7e/55/53/7e55539a279714304c177d82a2f399ff.js"></script>
 
 </body>
 </html>
